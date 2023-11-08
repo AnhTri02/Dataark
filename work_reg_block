@@ -47,9 +47,11 @@ architecture Behavioral of work_reg_block is
 signal muxOut : STD_LOGIC_VECTOR ( 7 downto 0 );
 signal wreg_Out: STD_LOGIC_VECTOR ( 7 downto 0 );
 signal restore_or_ena : STD_LOGIC;
+signal mainOut : STD_LOGIC_VECTOR ( 7 downto 0 );
 
 begin
-restore_or_ena <= restore_wreg or ena;
+    restore_or_ena <= restore_wreg or ena;
+    Q <= mainOut;
 
     mux: entity work.MUX2x8
     port map(
@@ -61,21 +63,21 @@ restore_or_ena <= restore_wreg or ena;
     
     registerQ: entity work.work_reg
     port map(
-            clk  => clk,
-            ena => restore_or_ena,
-            n_rst => rst,
-            D => muxOut,
-            Q => Q
+        clk  => clk,
+        ena => restore_or_ena,
+        n_rst => rst,
+        D => muxOut,
+        Q => mainOut
     );
     
     registerSave: entity work.work_reg
-        port map(
-                clk  => clk,
-                ena => save_wreg,
-                n_rst => rst,
-                D => muxOut,
-                Q => wreg_out
-        );
+    port map(
+        clk  => clk,
+        ena => save_wreg,
+        n_rst => rst,
+        D => mainOut,
+        Q => wreg_out
+    );
 
 end Behavioral;
 
