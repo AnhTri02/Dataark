@@ -45,35 +45,37 @@ end work_reg_block;
 architecture Behavioral of work_reg_block is
 
 signal muxOut : STD_LOGIC_VECTOR ( 7 downto 0 );
-signal reg_Out: STD_LOGIC_VECTOR ( 7 downto 0 );
+signal wreg_Out: STD_LOGIC_VECTOR ( 7 downto 0 );
+signal restore_or_ena : STD_LOGIC;
 
 begin
+restore_or_ena <= restore_wreg or ena;
 
-With restore_wreg select
-    muxOut <= D when '0', reg_Out when '1';
-
-
-process (clk) is begin
-   if rising_edge(clk) then 
-        if(save_wreg = '1') then 
-            reg_Out <= muxOut;
-        elsif(rst ='1') then
-            reg_Out <= "00000000";
-   end if;
-   end if;
-   end process;
-   
- process (clk) begin
- if rising_edge (clk) then
-     if(restore_wreg = '1' or ena = '1') then
-            Q <= muxOut;
-     elsif(rst = '1') then
-        Q <= "00000000";
- 
- end if;
- end if;
- end process;
-
-
+    mux: entity work.MUX2x8
+    port map(
+        input0 => D,
+        input1 => wreg_out,
+        sel => restore_wreg,
+        output => muxOut
+    );
+    
+    registerQ: entity work.work_reg
+    port map(
+            clk  => clk,
+            ena => restore_or_ena,
+            n_rst => rst,
+            D => muxOut,
+            Q => Q
+    );
+    
+    registerSave: entity work.work_reg
+        port map(
+                clk  => clk,
+                ena => save_wreg,
+                n_rst => rst,
+                D => muxOut,
+                Q => wreg_out
+        );
 
 end Behavioral;
+
